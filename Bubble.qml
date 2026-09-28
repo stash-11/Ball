@@ -19,9 +19,13 @@ Item {
     }
     property bool angry: false
     property string expression: ""
-    property real expressionAmount: expression === "" ? 0 : 1
-    Behavior on expressionAmount { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
+    property string pendingExpression: ""
+    property real expressionAmount: 0
     readonly property bool laughing: expression === "laugh" || expression === "happy" || expression === "excited"
+    readonly property real laughAmount: laughing ? expressionAmount : 0
+    readonly property real winkAmount: expression === "wink" ? expressionAmount : 0
+    readonly property real curiousAmount: expression === "curious" ? expressionAmount : 0
+    readonly property real surprisedAmount: expression === "surprised" ? expressionAmount : 0
     property real anger: angry && !expanded && expression === "" ? 1 : 0
     Behavior on anger { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
     readonly property bool hovered: pointer.containsMouse
@@ -56,8 +60,18 @@ Item {
     signal youtubeUrlDropped(string url)
 
     function react(mood) {
-        expression = mood;
-        expressionTimer.restart();
+        pendingExpression = mood;
+        expressionIn.stop();
+        expressionOut.stop();
+        expressionHold.stop();
+        expressionSwapOut.stop();
+        if (expression !== "" && expression !== mood && expressionAmount > 0.01) {
+            expressionSwapOut.start();
+        } else {
+            expression = mood;
+            if (expressionAmount < 0.01) expressionAmount = 0;
+            expressionIn.start();
+        }
     }
 
     function ease(value) {
@@ -103,20 +117,20 @@ Item {
             Rectangle {
                 required property int index
                 readonly property real side: index === 0 ? -1 : 1
-                readonly property bool smileEye: bubble.laughing || bubble.joy > 0.25
-                readonly property bool winkEye: bubble.expression === "wink" && index === 0
-                width: 5 - 3 * bubble.face + (smileEye ? 5 : winkEye ? 2 : bubble.expression === "curious" ? 1 : 0)
+                width: 5 - 3 * bubble.face + 5 * bubble.laughAmount
+                       + (index === 0 ? 2 * bubble.winkAmount : 0) + bubble.curiousAmount
                 height: (13 - 8 * bubble.anger * (1 - bubble.face) + 3 * bubble.face
-                         - (smileEye ? 9 : winkEye ? 10 : 0)
-                         + (bubble.expression === "surprised" ? 4 : 0))
+                         - 9 * bubble.laughAmount - (index === 0 ? 10 * bubble.winkAmount : 0)
+                         + 4 * bubble.surprisedAmount)
                         * (bubble.eyelid * (1 - bubble.face) + bubble.face)
-                x: 24 + side * (6.5 - 1.5 * bubble.anger + (bubble.expression === "surprised" ? 1.5 : 0)) * (1 - bubble.face) - width / 2
+                x: 24 + side * (6.5 - 1.5 * bubble.anger + 1.5 * bubble.surprisedAmount) * (1 - bubble.face) - width / 2
                 y: 25 + bubble.anger * (1 - bubble.face) - height / 2
                 radius: width / 2
                 rotation: side * (45 * bubble.face - 18 * bubble.anger * (1 - bubble.face)
-                                 + (smileEye ? 12 : 0) + (bubble.expression === "curious" ? 15 : 0))
+                                 + 12 * bubble.laughAmount + 15 * bubble.curiousAmount)
                 color: bubble.faceColor
-                opacity: (1 - bubble.joy) * (1 - (bubble.laughing || winkEye ? bubble.expressionAmount : 0))
+                opacity: (1 - bubble.joy) * (1 - Math.max(bubble.laughAmount,
+                           index === 0 ? bubble.winkAmount : 0))
                 antialiasing: true
             }
         }
@@ -128,8 +142,8 @@ Item {
                 x: 24 + (index === 0 ? -6.5 : 6.5) - 5
                 y: 22
                 width: 10; height: 8
-                opacity: bubble.joy + (bubble.laughing ? bubble.expressionAmount : 0)
-                scale: bubble.joy > 0.5 ? 1 : 0.9 + 0.1 * bubble.expressionAmount
+                opacity: bubble.joy + bubble.laughAmount
+                scale: bubble.joy > 0.5 ? 1 : 0.9 + 0.1 * bubble.laughAmount
                 Rectangle {
                     x: 1.5; y: 0; width: 2.5; height: 8; radius: 1.25
                     rotation: 35; color: bubble.faceColor; antialiasing: true
@@ -225,7 +239,28 @@ Item {
         interval: 5200; repeat: true; running: !bubble.expanded && !bubble.angry && !bubble.enjoying
         onTriggered: blink.restart()
     }
-    Timer { id: expressionTimer; interval: 760; onTriggered: bubble.expression = "" }
+    NumberAnimation {
+        id: expressionSwapOut
+        target: bubble; property: "expressionAmount"; to: 0
+        duration: 120; easing.type: Easing.InOutSine
+        onFinished: {
+            bubble.expression = bubble.pendingExpression;
+            expressionIn.start();
+        }
+    }
+    NumberAnimation {
+        id: expressionIn
+        target: bubble; property: "expressionAmount"; to: 1
+        duration: 240; easing.type: Easing.OutCubic
+        onFinished: expressionHold.start()
+    }
+    PauseAnimation { id: expressionHold; duration: 620; onFinished: expressionOut.start() }
+    NumberAnimation {
+        id: expressionOut
+        target: bubble; property: "expressionAmount"; to: 0
+        duration: 220; easing.type: Easing.InOutSine
+        onFinished: bubble.expression = ""
+    }
     onExpandedChanged: {
         blink.stop();
         eyelid = 1;
