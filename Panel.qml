@@ -178,7 +178,7 @@ Item {
             id: bubble
             x: root.dragging ? root.dragX : root.emergedX * (1 - phase) + root.panelX * phase
             y: root.dragging ? root.dragY : root.emergedY * (1 - phase) + root.panelY * phase
-            scale: dropHover && phase < 0.01 ? 1.2 : 1
+            scale: dropHover && phase < 0.01 ? 1.3 : 1
             transformOrigin: Item.Center
             Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 0.5 } }
             Behavior on x { enabled: !root.dragging && !revealMotion.running && !shapeMotion.running && root.travel === 0; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
