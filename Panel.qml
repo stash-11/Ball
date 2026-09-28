@@ -178,6 +178,9 @@ Item {
             id: bubble
             x: root.dragging ? root.dragX : root.emergedX * (1 - phase) + root.panelX * phase
             y: root.dragging ? root.dragY : root.emergedY * (1 - phase) + root.panelY * phase
+            scale: dropHover && phase < 0.01 ? 1.2 : 1
+            transformOrigin: Item.Center
+            Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 0.5 } }
             Behavior on x { enabled: !root.dragging && !revealMotion.running && !shapeMotion.running && root.travel === 0; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
             Behavior on y { enabled: !root.dragging && !revealMotion.running && !shapeMotion.running && root.travel === 0; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
             width: root.ballSize + (410 - root.ballSize) * root.travel
@@ -235,6 +238,27 @@ Item {
                 dropSerial: root.youtubeDropSerial
                 onNextPlayer: root.nextPlayer()
                 onDownloadRequested: function(url, audio, quality, format) { root.startDownload(url, audio, quality, format) }
+            }
+        }
+
+        Rectangle {
+            id: dropHint
+            readonly property real hintWidth: 156
+            width: hintWidth; height: 38; radius: 14
+            x: root.dockEdge === "right" ? bubble.x - width - 12
+             : root.dockEdge === "left" ? bubble.x + bubble.width + 12
+             : root.clamp(bubble.x + bubble.width / 2 - width / 2, 12, window.width - width - 12)
+            y: root.dockEdge === "bottom" ? bubble.y - height - 12
+             : root.clamp(bubble.y + bubble.height / 2 - height / 2, 12, window.height - height - 12)
+            color: "#202622"
+            opacity: bubble.dropHover ? 1 : 0
+            visible: bubble.dropHover || opacity > 0.01
+            z: 10
+            Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+            Row {
+                anchors.centerIn: parent; spacing: 8
+                UiIcon { anchors.verticalCenter: parent.verticalCenter; name: "youtube"; width: 18; height: 18; tint: "#9ed6b4" }
+                Text { anchors.verticalCenter: parent.verticalCenter; text: "Drop YouTube link"; color: "#edf0ed"; font.pixelSize: 11; font.weight: Font.DemiBold }
             }
         }
     }

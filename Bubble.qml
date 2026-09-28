@@ -6,6 +6,7 @@ Item {
     property real progress: 0
     property bool expanded: false
     property bool busy: false
+    property bool dropHover: false
     property bool enjoying: false
     property real joy: enjoying && !expanded && !angry && face < 0.01 ? 1 : 0
     property real beat: 0
@@ -83,7 +84,7 @@ Item {
         return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t,
                        a.b + (b.b - a.b) * t, 1);
     }
-    readonly property color mint: pointer.pressed ? "#8dc5a3" : pointer.containsMouse ? "#a8dfbd" : "#9ed6b4"
+    readonly property color mint: pointer.pressed ? "#8dc5a3" : dropHover ? "#c0f1d0" : pointer.containsMouse ? "#a8dfbd" : "#9ed6b4"
     readonly property color ink: "#151918"
     readonly property color restingFace: "#263d30"
     readonly property color openFace: "#9ed6b4"
@@ -227,7 +228,13 @@ Item {
     DropArea {
         anchors.fill: parent
         keys: ["text/plain", "text/uri-list"]
+        onEntered: {
+            bubble.dropHover = true;
+            bubble.react("surprised");
+        }
+        onExited: bubble.dropHover = false
         onDropped: function(event) {
+            bubble.dropHover = false;
             var value = String(event.text || "").trim();
             if (!value && event.urls && event.urls.length) value = String(event.urls[0]);
             if (value.indexOf("file:") === 0) value = decodeURIComponent(value.replace(/^file:\/\//, ""));
