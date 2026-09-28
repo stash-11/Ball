@@ -18,6 +18,8 @@ Item {
     signal downloadRequested(string url, bool audioOnly, string quality, string format)
     signal audioModeRequested(bool audioOnly)
     signal closeRequested()
+    signal expressionRequested(string mood)
+    function react(mood) { root.expressionRequested(mood) }
     function startDownload() {
         root.downloadRequested(urlInput.text, root.audioOnly,
                                root.audioOnly ? "720p" : quality.currentText,
@@ -40,7 +42,7 @@ Item {
                 required property int index
                 readonly property color tint: root.activeWidget === modelData.key ? "#17201c" : "#aebbb2"
                 x: 4 + index * 132; y: 4; width: 128; height: 56
-                onClicked: root.activeWidget = modelData.key
+                onClicked: { root.activeWidget = modelData.key; root.react("happy") }
                 Accessible.name: modelData.label
                 background: Item {}
                 contentItem: Column {
@@ -69,13 +71,13 @@ Item {
         }
         Row {
             anchors.horizontalCenter: parent.horizontalCenter; y: 112; spacing: 18
-            ActionButton { y: 6; width: 44; height: 44; iconName: "previous"; Accessible.name: "Previous track"; enabled: !!root.player && root.player.canGoPrevious; onClicked: root.player.previous() }
-            ActionButton { width: 64; height: 56; accent: true; iconName: root.player && root.player.isPlaying ? "pause" : "play"; Accessible.name: root.player && root.player.isPlaying ? "Pause" : "Play"; enabled: !!root.player && root.player.canTogglePlaying; onClicked: root.player.togglePlaying() }
-            ActionButton { y: 6; width: 44; height: 44; iconName: "next"; Accessible.name: "Next track"; enabled: !!root.player && root.player.canGoNext; onClicked: root.player.next() }
+            ActionButton { y: 6; width: 44; height: 44; iconName: "previous"; Accessible.name: "Previous track"; enabled: !!root.player && root.player.canGoPrevious; onClicked: { root.react("wink"); root.player.previous() } }
+            ActionButton { width: 64; height: 56; accent: true; iconName: root.player && root.player.isPlaying ? "pause" : "play"; Accessible.name: root.player && root.player.isPlaying ? "Pause" : "Play"; enabled: !!root.player && root.player.canTogglePlaying; onClicked: { root.react("laugh"); root.player.togglePlaying() } }
+            ActionButton { y: 6; width: 44; height: 44; iconName: "next"; Accessible.name: "Next track"; enabled: !!root.player && root.player.canGoNext; onClicked: { root.react("wink"); root.player.next() } }
         }
         Rectangle { y: 192; width: parent.width; height: 1; color: "#2a342d" }
         Text { x: 2; y: 219; text: "Playing from"; color: "#96a69c"; font.pixelSize: 12 }
-        ActionButton { anchors.right: parent.right; y: 206; width: 210; text: root.player ? root.player.identity : "No player connected"; enabled: root.playerCount > 1; onClicked: root.nextPlayer() }
+        ActionButton { anchors.right: parent.right; y: 206; width: 210; text: root.player ? root.player.identity : "No player connected"; enabled: root.playerCount > 1; onClicked: { root.react("curious"); root.nextPlayer() } }
     }
 
     Item {
@@ -93,8 +95,8 @@ Item {
         Text { y: 84; text: "Save as"; color: "#96a69c"; font.pixelSize: 12 }
         Row {
             y: 104; spacing: 6
-            ActionButton { width: 88; height: 36; text: "Video"; accent: !root.audioOnly; enabled: !root.downloading; onClicked: root.audioModeRequested(false) }
-            ActionButton { width: 88; height: 36; text: "Music"; accent: root.audioOnly; enabled: !root.downloading; onClicked: root.audioModeRequested(true) }
+            ActionButton { width: 88; height: 36; text: "Video"; accent: !root.audioOnly; enabled: !root.downloading; onClicked: { root.react("curious"); root.audioModeRequested(false) } }
+            ActionButton { width: 88; height: 36; text: "Music"; accent: root.audioOnly; enabled: !root.downloading; onClicked: { root.react("happy"); root.audioModeRequested(true) } }
         }
         Text { y: 148; text: "Quality"; color: "#96a69c"; font.pixelSize: 12; visible: !root.audioOnly }
         Controls.ComboBox {
@@ -129,8 +131,8 @@ Item {
             contentItem: Text { leftPadding: 12; text: musicFormat.currentText; color: "#edf0ed"; font.pixelSize: 13; verticalAlignment: Text.AlignVCenter }
             indicator: UiIcon { x: musicFormat.width - 28; y: 8; width: 20; height: 20; name: "chevron"; tint: "#96a69c" }
         }
-        ActionButton { y: 216; width: parent.width - 56; height: 42; iconName: "download"; text: root.downloading ? "Downloading…" : "Download"; accent: true; enabled: !root.downloading; onClicked: root.startDownload() }
-        ActionButton { anchors.right: parent.right; y: 216; width: 44; height: 42; iconName: "folder"; Accessible.name: "Open Downloads"; onClicked: Quickshell.execDetached(["xdg-open", root.downloadDirectory]) }
+        ActionButton { y: 216; width: parent.width - 56; height: 42; iconName: "download"; text: root.downloading ? "Downloading…" : "Download"; accent: true; enabled: !root.downloading; onClicked: { root.react("excited"); root.startDownload() } }
+        ActionButton { anchors.right: parent.right; y: 216; width: 44; height: 42; iconName: "folder"; Accessible.name: "Open Downloads"; onClicked: { root.react("happy"); Quickshell.execDetached(["xdg-open", root.downloadDirectory]) } }
         Text { y: 266; width: parent.width; height: 34; text: root.status; color: "#96a69c"; font.pixelSize: 11; wrapMode: Text.WrapAnywhere; maximumLineCount: 2; elide: Text.ElideRight }
     }
 }

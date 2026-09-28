@@ -18,7 +18,11 @@ Item {
         onStopped: bubble.beat = 0
     }
     property bool angry: false
-    property real anger: angry && !expanded ? 1 : 0
+    property string expression: ""
+    property real expressionAmount: expression === "" ? 0 : 1
+    Behavior on expressionAmount { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
+    readonly property bool laughing: expression === "laugh" || expression === "happy" || expression === "excited"
+    property real anger: angry && !expanded && expression === "" ? 1 : 0
     Behavior on anger { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
     readonly property bool hovered: pointer.containsMouse
     readonly property bool held: pointer.pressed
@@ -33,7 +37,7 @@ Item {
     readonly property real phase: Math.max(0, Math.min(1, progress))
     readonly property real rounding: ease((phase - 0.25) / 0.75)
     readonly property real corner: Math.min(width, height) / 2 * (1 - rounding) + 24 * rounding
-    property real face: expanded ? 1 : 0
+    property real face: expanded && expression === "" ? 1 : 0
     Behavior on face { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
     readonly property real faceScale: 5 / 6 + phase / 6
     readonly property real reveal: ease((phase - 0.84) / 0.16)
@@ -50,6 +54,11 @@ Item {
     signal dragMoved(real dx, real dy)
     signal dragFinished()
     signal youtubeUrlDropped(string url)
+
+    function react(mood) {
+        expression = mood;
+        expressionTimer.restart();
+    }
 
     function ease(value) {
         var t = Math.max(0, Math.min(1, value));
@@ -94,14 +103,20 @@ Item {
             Rectangle {
                 required property int index
                 readonly property real side: index === 0 ? -1 : 1
-                width: 5 - 3 * bubble.face
-                height: (13 - 8 * bubble.anger * (1 - bubble.face) + 3 * bubble.face) * (bubble.eyelid * (1 - bubble.face) + bubble.face)
-                x: 24 + side * (6.5 - 1.5 * bubble.anger) * (1 - bubble.face) - width / 2
+                readonly property bool smileEye: bubble.laughing || bubble.joy > 0.25
+                readonly property bool winkEye: bubble.expression === "wink" && index === 0
+                width: 5 - 3 * bubble.face + (smileEye ? 5 : winkEye ? 2 : bubble.expression === "curious" ? 1 : 0)
+                height: (13 - 8 * bubble.anger * (1 - bubble.face) + 3 * bubble.face
+                         - (smileEye ? 9 : winkEye ? 10 : 0)
+                         + (bubble.expression === "surprised" ? 4 : 0))
+                        * (bubble.eyelid * (1 - bubble.face) + bubble.face)
+                x: 24 + side * (6.5 - 1.5 * bubble.anger + (bubble.expression === "surprised" ? 1.5 : 0)) * (1 - bubble.face) - width / 2
                 y: 25 + bubble.anger * (1 - bubble.face) - height / 2
                 radius: width / 2
-                rotation: side * (45 * bubble.face - 18 * bubble.anger * (1 - bubble.face))
+                rotation: side * (45 * bubble.face - 18 * bubble.anger * (1 - bubble.face)
+                                 + (smileEye ? 12 : 0) + (bubble.expression === "curious" ? 15 : 0))
                 color: bubble.faceColor
-                opacity: 1 - bubble.joy
+                opacity: (1 - bubble.joy) * (1 - (bubble.laughing || winkEye ? bubble.expressionAmount : 0))
                 antialiasing: true
             }
         }
@@ -113,7 +128,8 @@ Item {
                 x: 24 + (index === 0 ? -6.5 : 6.5) - 5
                 y: 22
                 width: 10; height: 8
-                opacity: bubble.joy
+                opacity: bubble.joy + (bubble.laughing ? bubble.expressionAmount : 0)
+                scale: bubble.joy > 0.5 ? 1 : 0.9 + 0.1 * bubble.expressionAmount
                 Rectangle {
                     x: 1.5; y: 0; width: 2.5; height: 8; radius: 1.25
                     rotation: 35; color: bubble.faceColor; antialiasing: true
@@ -121,6 +137,33 @@ Item {
                 Rectangle {
                     x: 6; y: 0; width: 2.5; height: 8; radius: 1.25
                     rotation: -35; color: bubble.faceColor; antialiasing: true
+                }
+            }
+        }
+        Canvas {
+            id: mouth
+            width: 48; height: 48
+            opacity: bubble.expressionAmount * (bubble.face < 0.5 ? 1 : 0)
+            onOpacityChanged: requestPaint()
+            Connections { target: bubble; function onExpressionChanged() { mouth.requestPaint() } }
+            onPaint: {
+                var ctx = getContext("2d");
+                ctx.clearRect(0, 0, width, height);
+                if (bubble.expression === "") return;
+                ctx.strokeStyle = bubble.faceColor;
+                ctx.fillStyle = bubble.faceColor;
+                ctx.lineWidth = 2;
+                ctx.lineCap = "round";
+                if (bubble.laughing) {
+                    ctx.beginPath(); ctx.ellipse(24, 28, 6, 5, 0, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = "#9ed6b4";
+                    ctx.beginPath(); ctx.ellipse(24, 31, 3, 1.5, 0, 0, Math.PI * 2); ctx.fill();
+                } else if (bubble.expression === "surprised") {
+                    ctx.beginPath(); ctx.ellipse(24, 28, 3, 4, 0, 0, Math.PI * 2); ctx.stroke();
+                } else if (bubble.expression === "angry") {
+                    ctx.beginPath(); ctx.arc(24, 34, 7, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+                } else {
+                    ctx.beginPath(); ctx.arc(24, 21, 9, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
                 }
             }
         }
@@ -182,6 +225,7 @@ Item {
         interval: 5200; repeat: true; running: !bubble.expanded && !bubble.angry && !bubble.enjoying
         onTriggered: blink.restart()
     }
+    Timer { id: expressionTimer; interval: 760; onTriggered: bubble.expression = "" }
     onExpandedChanged: {
         blink.stop();
         eyelid = 1;

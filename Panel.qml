@@ -66,6 +66,7 @@ Item {
     onOpenedChanged: {
         if (opened) expansionOrigin = undock;
         growing = opened;
+        bubble.react(opened ? "surprised" : "happy");
     }
     function open(payload) { opened = true }
     function close() { opened = false }
@@ -89,6 +90,7 @@ Item {
     function nextPlayer() {
         if (!players.length) return;
         var index = players.indexOf(player);
+        bubble.react("wink");
         selectedPlayer = players[(index + 1) % players.length].identity;
     }
     property string downloadDirectory: (Quickshell.env("HOME") || "") + "/Downloads"
@@ -99,6 +101,7 @@ Item {
     property int youtubeDropSerial: 0
     function startDownload(url, audio, quality, format) {
         if (download.running) return;
+        bubble.react("excited");
         var args = Download.command(url, audio, quality, downloadDirectory, format);
         if (!args.length) { status = "Enter a valid https:// YouTube video link."; return; }
         lastError = "";
@@ -130,6 +133,7 @@ Item {
         }
         onExited: function(code) {
             root.status = code === 0 ? "Done · Saved to Downloads" : (root.lastError || "Download failed. Check the link and connection.");
+            bubble.react(code === 0 ? "laugh" : "angry");
         }
     }
 
@@ -178,10 +182,11 @@ Item {
             busy: download.running
             enjoying: !!root.player && root.player.isPlaying
             onClicked: root.toggleWidgets()
-            onDragStarted: root.beginDrag()
+            onDragStarted: { bubble.react("curious"); root.beginDrag() }
             onDragMoved: function(dx, dy) { root.moveDrag(dx, dy) }
-            onDragFinished: root.finishDrag()
+            onDragFinished: { root.finishDrag(); bubble.react("wink") }
             onYoutubeUrlDropped: function(url) {
+                bubble.react("surprised");
                 if (!Download.validUrl(url)) {
                     root.status = "Drop a valid YouTube video URL."
                     root.activeWidget = "youtube"
@@ -191,6 +196,7 @@ Item {
                 root.droppedYoutubeUrl = url
                 root.youtubeDropSerial += 1
                 root.activeWidget = "youtube"
+                bubble.react("excited")
                 if (!root.opened) root.toggleWidgets()
             }
 
@@ -206,6 +212,7 @@ Item {
                 enabled: root.opened && bubble.reveal > 0.95
                 focus: enabled
                 onCloseRequested: root.dismiss()
+                onExpressionRequested: function(mood) { bubble.react(mood) }
                 onAudioModeRequested: function(value) { root.audioOnly = value }
                 Keys.onEscapePressed: root.dismiss()
                 player: root.player
