@@ -23,7 +23,7 @@ Item {
     property real dragStartY: 0
     function clamp(value, low, high) { return Math.max(low, Math.min(high, value)) }
     readonly property real restX: dockEdge === "left" ? -ballRadius : dockEdge === "right" ? window.width - ballRadius : clamp(dockPosition, 48, window.width - 48) - ballRadius
-    readonly property real restY: dockEdge === "bottom" ? window.height - ballRadius : clamp(dockPosition, 48, window.height - 48) - ballRadius
+    readonly property real restY: dockEdge === "top" ? -ballRadius : dockEdge === "bottom" ? window.height - ballRadius : clamp(dockPosition, 48, window.height - 48) - ballRadius
     readonly property real panelX: dockEdge === "left" ? 16 : dockEdge === "right" ? window.width - 426 : clamp(dockPosition - 205, 16, window.width - 426)
     readonly property real panelY: dockEdge === "bottom" ? window.height - 386 : clamp(restY, 24, window.height - 386)
     function beginDrag() {
@@ -34,16 +34,17 @@ Item {
         dragging = true;
     }
     function moveDrag(dx, dy) {
-        dragX = clamp(dragStartX + dx, 0, window.width - ballSize);
-        dragY = clamp(dragStartY + dy, 24, window.height - ballSize);
+        var peek = ballRadius * 0.4;
+        dragX = clamp(dragStartX + dx, -peek, window.width - ballSize + peek);
+        dragY = clamp(dragStartY + dy, -peek, window.height - ballSize + peek);
     }
     function finishDrag() {
         var cx = dragX + ballRadius;
         var cy = dragY + ballRadius;
-        var distances = [cx, window.width - cx, window.height - cy];
+        var distances = [cx, window.width - cx, cy, window.height - cy];
         var nearest = distances.indexOf(Math.min.apply(null, distances));
-        dockEdge = ["left", "right", "bottom"][nearest];
-        dockPosition = nearest === 2 ? cx : cy;
+        dockEdge = ["left", "right", "top", "bottom"][nearest];
+        dockPosition = nearest === 0 || nearest === 1 ? cy : cx;
         dragging = false;
     }
     // Hover peeks out ten pixels; expansion starts at that exact position.
@@ -63,7 +64,7 @@ Item {
         }
     }
     readonly property real emergedX: restX + (dockEdge === "left" ? ballRadius + 16 : dockEdge === "right" ? -ballRadius - 16 : 0) * undock
-    readonly property real emergedY: restY - (dockEdge === "bottom" ? ballRadius + 16 : 0) * undock
+    readonly property real emergedY: restY + (dockEdge === "top" ? ballRadius + 16 : dockEdge === "bottom" ? -ballRadius - 16 : 0) * undock
     onOpenedChanged: {
         if (opened) expansionOrigin = undock;
         growing = opened;
@@ -178,7 +179,7 @@ Item {
             id: bubble
             x: root.dragging ? root.dragX : root.emergedX * (1 - phase) + root.panelX * phase
             y: root.dragging ? root.dragY : root.emergedY * (1 - phase) + root.panelY * phase
-            scale: dropHover && phase < 0.01 ? 1.3 : 1
+            scale: 1
             transformOrigin: Item.Center
             Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 0.5 } }
             Behavior on x { enabled: !root.dragging && !revealMotion.running && !shapeMotion.running && root.travel === 0; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
@@ -238,6 +239,28 @@ Item {
                 dropSerial: root.youtubeDropSerial
                 onNextPlayer: root.nextPlayer()
                 onDownloadRequested: function(url, audio, quality, format) { root.startDownload(url, audio, quality, format) }
+            }
+        }
+
+        Rectangle {
+            id: dropHint
+            width: 92; height: 34; radius: 12
+            x: root.dockEdge === "right" ? bubble.x - width - 10
+             : root.dockEdge === "left" ? bubble.x + bubble.width + 10
+             : root.clamp(bubble.x + bubble.width / 2 - width / 2, 10, window.width - width - 10)
+            y: root.dockEdge === "bottom" ? bubble.y - height - 10
+             : root.clamp(bubble.y + bubble.height / 2 - height / 2, 10, window.height - height - 10)
+            color: "#202622"
+            opacity: bubble.dropHover ? 1 : 0
+            visible: bubble.dropHover || opacity > 0.01
+            z: 10
+            Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+            Text {
+                anchors.centerIn: parent
+                text: "Drop here"
+                color: "#edf0ed"
+                font.pixelSize: 12
+                font.weight: Font.DemiBold
             }
         }
     }

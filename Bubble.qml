@@ -35,7 +35,7 @@ Item {
     property string dockEdge: "right"
     property real tucked: 1
     property real peekX: dockEdge === "right" ? -10 : dockEdge === "left" ? 10 : 0
-    property real peekY: dockEdge === "bottom" ? -10 : 0
+    property real peekY: dockEdge === "bottom" ? -10 : dockEdge === "top" ? 10 : 0
     Behavior on peekX { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
     Behavior on peekY { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
     property alias content: contents.data
@@ -186,16 +186,6 @@ Item {
                 }
             }
         }
-    }
-    UiIcon {
-        x: bubble.faceCenter.x - 11
-        y: bubble.faceCenter.y - 11
-        width: 22; height: 22
-        name: "drop"
-        tint: "#17201c"
-        visible: bubble.dropHover && !bubble.expanded
-        opacity: visible ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
     }
     Rectangle {
         visible: bubble.busy
