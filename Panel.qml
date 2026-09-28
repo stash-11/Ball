@@ -97,9 +97,9 @@ Item {
     property bool audioOnly: false
     property string droppedYoutubeUrl: ""
     property int youtubeDropSerial: 0
-    function startDownload(url, audio, quality) {
+    function startDownload(url, audio, quality, format) {
         if (download.running) return;
-        var args = Download.command(url, audio, quality, downloadDirectory);
+        var args = Download.command(url, audio, quality, downloadDirectory, format);
         if (!args.length) { status = "Enter a valid https:// YouTube video link."; return; }
         lastError = "";
         status = "Starting download…";
@@ -217,7 +217,7 @@ Item {
                 droppedUrl: root.droppedYoutubeUrl
                 dropSerial: root.youtubeDropSerial
                 onNextPlayer: root.nextPlayer()
-                onDownloadRequested: function(url, audio, quality) { root.startDownload(url, audio, quality) }
+                onDownloadRequested: function(url, audio, quality, format) { root.startDownload(url, audio, quality, format) }
             }
         }
     }

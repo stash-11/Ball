@@ -12,7 +12,7 @@ omarchy-shell shell toggle io.github.stash-11.utilities '{}'
 
 Music controls an existing MPRIS player (music apps and supported browsers). Use Player to cycle sources. Controls are disabled when unavailable.
 
-Paste an HTTPS YouTube video link into the downloader. Choose Video (480p, 720p, or 1080p maximum) or Audio (MP3), then Download. Files go to your XDG Downloads directory; Files opens it. Existing files are not overwritten, playlists are disabled, and local yt-dlp configuration is ignored. The panel can close while its download continues; keepLoaded keeps the process alive. Shell reloads or logout may interrupt it; retrying the URL can resume partial downloads.
+Drop a YouTube link on the ball to open the YouTube tab with the URL filled in. Choose Video (360p through 2160p, with MP4, MKV, or WebM) or Music (MP3, M4A, Opus, FLAC, or WAV), then Download. Files go to your XDG Downloads directory; Files opens it. Existing files are not overwritten, playlists are disabled, and local yt-dlp configuration is ignored. The panel can close while its download continues; keepLoaded keeps the process alive. Shell reloads or logout may interrupt it; retrying the URL can resume partial downloads.
 
 Dependencies: yt-dlp, ffmpeg, xdg-user-dir, xdg-open. A download needs network access. Status displays errors from yt-dlp. Video resolution and output container depend on the available formats. No downloads start until you press Download.
 

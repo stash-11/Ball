@@ -15,10 +15,14 @@ Item {
     property string droppedUrl: ""
     property int dropSerial: 0
     signal nextPlayer()
-    signal downloadRequested(string url, bool audioOnly, string quality)
+    signal downloadRequested(string url, bool audioOnly, string quality, string format)
     signal audioModeRequested(bool audioOnly)
     signal closeRequested()
-    function startDownload() { root.downloadRequested(urlInput.text, root.audioOnly, quality.currentText) }
+    function startDownload() {
+        root.downloadRequested(urlInput.text, root.audioOnly,
+                               root.audioOnly ? "720p" : quality.currentText,
+                               root.audioOnly ? musicFormat.currentText : videoFormat.currentText)
+    }
     onDropSerialChanged: if (dropSerial > 0) urlInput.text = droppedUrl
 
     Rectangle {
@@ -90,20 +94,43 @@ Item {
         Row {
             y: 104; spacing: 6
             ActionButton { width: 88; height: 36; text: "Video"; accent: !root.audioOnly; enabled: !root.downloading; onClicked: root.audioModeRequested(false) }
-            ActionButton { width: 88; height: 36; text: "Audio"; accent: root.audioOnly; enabled: !root.downloading; onClicked: root.audioModeRequested(true) }
+            ActionButton { width: 88; height: 36; text: "Music"; accent: root.audioOnly; enabled: !root.downloading; onClicked: root.audioModeRequested(true) }
         }
-        Text { x: 204; y: 84; text: root.audioOnly ? "Format" : "Quality"; color: "#96a69c"; font.pixelSize: 12 }
+        Text { y: 148; text: "Quality"; color: "#96a69c"; font.pixelSize: 12; visible: !root.audioOnly }
         Controls.ComboBox {
             id: quality
-            x: 204; y: 104; width: parent.width - 204; height: 36
-            model: ["480", "720", "1080"]; currentIndex: 1
+            y: 170; width: 148; height: 36
+            model: ["360p", "480p", "720p", "1080p", "1440p", "2160p"]; currentIndex: 2
             enabled: !root.audioOnly && !root.downloading
+            visible: !root.audioOnly
             background: Rectangle { radius: 10; color: "#252c28" }
-            contentItem: Text { leftPadding: 12; text: root.audioOnly ? "MP3" : quality.currentText + "p"; color: "#edf0ed"; font.pixelSize: 13; verticalAlignment: Text.AlignVCenter }
+            contentItem: Text { leftPadding: 12; text: quality.currentText; color: "#edf0ed"; font.pixelSize: 13; verticalAlignment: Text.AlignVCenter }
             indicator: UiIcon { x: quality.width - 28; y: 8; width: 20; height: 20; name: "chevron"; tint: "#96a69c" }
         }
-        ActionButton { y: 162; width: parent.width - 56; height: 44; iconName: "download"; text: root.downloading ? "Downloading…" : "Download"; accent: true; enabled: !root.downloading; onClicked: root.startDownload() }
-        ActionButton { anchors.right: parent.right; y: 162; width: 44; height: 44; iconName: "folder"; Accessible.name: "Open Downloads"; onClicked: Quickshell.execDetached(["xdg-open", root.downloadDirectory]) }
-        Text { y: 220; width: parent.width; height: 34; text: root.status; color: "#96a69c"; font.pixelSize: 11; wrapMode: Text.WrapAnywhere; maximumLineCount: 2; elide: Text.ElideRight }
+        Text { x: 160; y: 148; text: "Container"; color: "#96a69c"; font.pixelSize: 12; visible: !root.audioOnly }
+        Controls.ComboBox {
+            id: videoFormat
+            x: 160; y: 170; width: parent.width - 160; height: 36
+            model: ["MP4", "MKV", "WebM"]; currentIndex: 0
+            enabled: !root.audioOnly && !root.downloading
+            visible: !root.audioOnly
+            background: Rectangle { radius: 10; color: "#252c28" }
+            contentItem: Text { leftPadding: 12; text: videoFormat.currentText; color: "#edf0ed"; font.pixelSize: 13; verticalAlignment: Text.AlignVCenter }
+            indicator: UiIcon { x: videoFormat.width - 28; y: 8; width: 20; height: 20; name: "chevron"; tint: "#96a69c" }
+        }
+        Text { y: 148; text: "Music format"; color: "#96a69c"; font.pixelSize: 12; visible: root.audioOnly }
+        Controls.ComboBox {
+            id: musicFormat
+            y: 170; width: parent.width; height: 36
+            model: ["MP3", "M4A", "OPUS", "FLAC", "WAV"]; currentIndex: 0
+            enabled: root.audioOnly && !root.downloading
+            visible: root.audioOnly
+            background: Rectangle { radius: 10; color: "#252c28" }
+            contentItem: Text { leftPadding: 12; text: musicFormat.currentText; color: "#edf0ed"; font.pixelSize: 13; verticalAlignment: Text.AlignVCenter }
+            indicator: UiIcon { x: musicFormat.width - 28; y: 8; width: 20; height: 20; name: "chevron"; tint: "#96a69c" }
+        }
+        ActionButton { y: 216; width: parent.width - 56; height: 42; iconName: "download"; text: root.downloading ? "Downloading…" : "Download"; accent: true; enabled: !root.downloading; onClicked: root.startDownload() }
+        ActionButton { anchors.right: parent.right; y: 216; width: 44; height: 42; iconName: "folder"; Accessible.name: "Open Downloads"; onClicked: Quickshell.execDetached(["xdg-open", root.downloadDirectory]) }
+        Text { y: 266; width: parent.width; height: 34; text: root.status; color: "#96a69c"; font.pixelSize: 11; wrapMode: Text.WrapAnywhere; maximumLineCount: 2; elide: Text.ElideRight }
     }
 }
