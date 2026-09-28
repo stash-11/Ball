@@ -11,6 +11,7 @@ Item {
     property var service: null
     property var manifest: null
     property bool opened: false
+    property string activeWidget: "music"
     readonly property real ballSize: 40
     readonly property real ballRadius: ballSize / 2
     property string dockEdge: "right"
@@ -218,6 +219,8 @@ Item {
                 opacity: bubble.reveal
                 enabled: root.opened && bubble.reveal > 0.95
                 focus: enabled
+                activeWidget: root.activeWidget
+                onWidgetSelected: function(widget) { root.activeWidget = widget }
                 onCloseRequested: root.dismiss()
                 onExpressionRequested: function(mood) { bubble.react(mood) }
                 onAudioModeRequested: function(value) { root.audioOnly = value }
