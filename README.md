@@ -4,11 +4,15 @@ A separate Omarchy plugin with a solid mint bubble tucked halfway beyond the top
 
 Drag the collapsed bubble to reposition it. On release it snaps halfway into the nearest left, right, or bottom edge; the top edge is excluded. Both eyes stay on the visible half. A short click opens the widgets, while a drag only moves the bubble. The tab highlight slides between Music and YouTube without an outline.
 
-Click the bubble to stretch it into the widget panel. Its outline ripples while growing, then gently settles; the eyes merge into one X. Music and YouTube tabs switch the single visible card inside. Click the X or press Escape to flow back into the bubble at the screen edge. One motion value drives the outline, eyes, contents and input region, on a fixed Wayland surface. It does not reserve screen space. You can also run:
+Click the bubble to stretch it into the widget panel. Its outline ripples while growing, then gently settles; the eyes merge into one X. Music and YouTube tabs switch the single visible card inside. Click the X or press Escape to flow back into the bubble at the screen edge. One motion value drives the outline, eyes, contents and input region, on a fixed Wayland surface. It does not reserve screen space. Omarchy shell IPC can open a selected tab or toggle visibility:
 
 ```sh
+omarchy-shell shell summon io.github.stash-11.utilities '{"widget":"music"}'
+omarchy-shell shell summon io.github.stash-11.utilities '{"widget":"youtube"}'
 omarchy-shell shell toggle io.github.stash-11.utilities '{}'
 ```
+
+Each `summon` command opens the panel and selects that tab. `toggle` opens or hides the panel.
 
 Music controls an existing MPRIS player (music apps and supported browsers). Use Player to cycle sources. Controls are disabled when unavailable.
 

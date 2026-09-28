@@ -68,7 +68,14 @@ Item {
         growing = opened;
         bubble.react(opened ? "surprised" : "happy");
     }
-    function open(payload) { opened = true }
+    function open(payloadJson) {
+        var payload = {}
+        try { payload = JSON.parse(payloadJson || "{}") || {} } catch (e) {}
+        var requestedWidget = String(payload.widget || payload.tab || "")
+        if (requestedWidget === "music" || requestedWidget === "youtube")
+            root.activeWidget = requestedWidget
+        root.opened = true
+    }
     function close() { opened = false }
     function toggleWidgets() {
         if (shell) shell.toggle("io.github.stash-11.utilities", "{}")
