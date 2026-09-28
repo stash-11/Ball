@@ -22,10 +22,11 @@ Item {
     property string pendingExpression: ""
     property real expressionAmount: 0
     readonly property bool laughing: expression === "laugh" || expression === "happy" || expression === "excited"
-    readonly property real laughAmount: laughing ? expressionAmount : 0
-    readonly property real winkAmount: expression === "wink" ? expressionAmount : 0
-    readonly property real curiousAmount: expression === "curious" ? expressionAmount : 0
-    readonly property real surprisedAmount: expression === "surprised" ? expressionAmount : 0
+    readonly property real visibleExpressionAmount: expanded ? 0 : expressionAmount
+    readonly property real laughAmount: laughing ? visibleExpressionAmount : 0
+    readonly property real winkAmount: expression === "wink" ? visibleExpressionAmount : 0
+    readonly property real curiousAmount: expression === "curious" ? visibleExpressionAmount : 0
+    readonly property real surprisedAmount: expression === "surprised" ? visibleExpressionAmount : 0
     property real anger: angry && !expanded && expression === "" ? 1 : 0
     Behavior on anger { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
     readonly property bool hovered: pointer.containsMouse
@@ -41,7 +42,7 @@ Item {
     readonly property real phase: Math.max(0, Math.min(1, progress))
     readonly property real rounding: ease((phase - 0.25) / 0.75)
     readonly property real corner: Math.min(width, height) / 2 * (1 - rounding) + 24 * rounding
-    property real face: expanded && expression === "" ? 1 : 0
+    property real face: expanded ? 1 : 0
     Behavior on face { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
     readonly property real faceScale: 5 / 6 + phase / 6
     readonly property real reveal: ease((phase - 0.84) / 0.16)
@@ -157,7 +158,7 @@ Item {
         Canvas {
             id: mouth
             width: 48; height: 48
-            opacity: bubble.expressionAmount * (bubble.face < 0.5 ? 1 : 0)
+            opacity: bubble.visibleExpressionAmount
             onOpacityChanged: requestPaint()
             Connections { target: bubble; function onExpressionChanged() { mouth.requestPaint() } }
             onPaint: {
