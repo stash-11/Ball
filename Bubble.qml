@@ -103,6 +103,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: bubble.mixColor(bubble.mint, bubble.ink, bubble.ease(bubble.phase))
+        Behavior on color { ColorAnimation { duration: 150; easing.type: Easing.OutCubic } }
     }
     Item { id: contents; anchors.fill: parent }
 
@@ -112,6 +113,8 @@ Item {
         y: bubble.faceCenter.y - 24 * bubble.faceScale - 1.5 * bubble.beat * bubble.joy
         width: 48
         height: 48
+        opacity: bubble.dropHover ? 0 : 1
+        Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
         scale: bubble.faceScale
         transformOrigin: Item.TopLeft
         Repeater {
@@ -183,6 +186,16 @@ Item {
                 }
             }
         }
+    }
+    UiIcon {
+        x: bubble.faceCenter.x - 11
+        y: bubble.faceCenter.y - 11
+        width: 22; height: 22
+        name: "drop"
+        tint: "#17201c"
+        visible: bubble.dropHover && !bubble.expanded
+        opacity: visible ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
     }
     Rectangle {
         visible: bubble.busy
