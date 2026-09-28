@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.stash-11.utilities",
+  "name": "My Utilities",
+  "version": "0.2.0",
+  "author": "stash-11",
+  "description": "A liquid bubble that expands into music and YouTube downloader widgets.",
+  "kinds": ["panel"],
+  "keepLoaded": true,
+  "entryPoints": {"panel": "Panel.qml"}
+}
